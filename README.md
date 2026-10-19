@@ -2,8 +2,8 @@
 
 A small asynchronous messaging system built for the SSP2 assignment. A timed
 Python generator sends South Park messages to the Go HTTP API, the API
-publishes them to RabbitMQ, and the Python consumer prints each message body to
-its console.
+publishes them to RabbitMQ, and the Python consumer prints each author and
+message to its console.
 
 ## Architecture
 
@@ -23,28 +23,77 @@ application service directly.
 
 No local Go or Python installation is required for the Docker workflow.
 
-## Run the complete stack
+## Start the complete project
 
-### One-click Windows launcher
+Docker Desktop must be running first. Use the project root—the folder that
+contains `docker-compose.yml` and `start-app.cmd`—for all three options below.
 
-With Docker Desktop running, double-click `start-app.cmd` in the repository
-folder. It builds and starts the complete application, then automatically opens
-a dedicated PowerShell window where consumed messages appear as they arrive.
+### Option 1: Windows File Explorer
 
-Double-click `stop-app.cmd` to stop the containers. Closing only the message
-window does not stop the application.
+1. Open the project root in Windows File Explorer.
+2. Double-click `start-app.cmd`.
 
-### Command line
+The launcher builds and starts the complete application in the background,
+then opens a dedicated PowerShell window where consumed messages appear as
+they arrive. Closing only that window does not stop the application.
 
-From the repository root:
+Double-click `stop-app.cmd` in File Explorer to stop the containers. Clicking a
+`.cmd` file inside VS Code opens it for editing instead of running it, so use
+Windows File Explorer for this option.
+
+### Option 2: PowerShell, Windows Terminal, or Command Prompt
+
+Open a terminal in the project root. In PowerShell, including a PowerShell tab
+in Windows Terminal, run:
+
+```powershell
+.\start-app.cmd
+```
+
+In Command Prompt (`cmd.exe`), run:
+
+```bat
+start-app.cmd
+```
+
+Both commands run the same launcher as Option 1 and open the dedicated message
+window. To stop the application, run `.\stop-app.cmd` in PowerShell or
+`stop-app.cmd` in Command Prompt.
+
+### Option 3: Standard Docker Compose commands
+
+To run in the foreground and see all service logs in the current terminal:
 
 ```console
 docker compose up --build
 ```
 
+Press `Ctrl+C` to stop the foreground run. To run the containers in the
+background instead:
+
+```console
+docker compose up --build --detach
+```
+
+Show only the consumed messages from a background run:
+
+```console
+docker compose logs --follow --no-log-prefix consumer
+```
+
+Press `Ctrl+C` to stop following logs; this does not stop the containers. Stop
+and remove the containers and Compose network with:
+
+```console
+docker compose down
+```
+
 Compose waits for RabbitMQ to become healthy before starting the API and
 consumer. Once the API is healthy, the generator begins sending a randomly
-ordered cycle of messages every five seconds.
+ordered cycle of messages every five seconds. If RabbitMQ restarts later, the
+consumer reconnects and the API recreates its publisher connection on the next
+message attempt. Requests made while RabbitMQ is unavailable receive `503`
+rather than reporting a message as queued.
 
 The services are then available at:
 
@@ -56,7 +105,9 @@ The services are then available at:
 | RabbitMQ management UI | `http://localhost:15672` |
 
 The default RabbitMQ management credentials are `southpark` / `southpark`.
-They are intended only for local development.
+They are intended only for local development. RabbitMQ's AMQP and management
+ports are bound to `127.0.0.1`, so they are not exposed to other machines on
+the network.
 
 ## Send a message
 
@@ -84,6 +135,11 @@ The API returns `202 Accepted` after RabbitMQ confirms the publication:
 {"status":"queued"}
 ```
 
+The queue is durable and published messages use persistent delivery. The
+consumer acknowledges a valid message only after printing it. Malformed queue
+payloads are rejected without requeueing so one bad payload cannot create an
+infinite processing loop.
+
 The consumer container prints:
 
 ```text
@@ -93,7 +149,7 @@ Cartman: Respect my authoritah!
 Follow only the consumer output with:
 
 ```console
-docker compose logs --follow consumer
+docker compose logs --follow --no-log-prefix consumer
 ```
 
 Follow generated requests with:
@@ -158,6 +214,8 @@ Go API:
 ```console
 cd services/api
 go test ./...
+go test -race ./...
+go vet ./...
 ```
 
 Python consumer:
