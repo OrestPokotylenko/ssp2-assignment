@@ -59,10 +59,10 @@ func (p *Publisher) connectLocked() error {
 
 	_, err = channel.QueueDeclare(
 		p.queueName,
-		true,  // durable
-		false, // auto-delete
-		false, // exclusive
-		false, // no-wait
+		true,
+		false,
+		false,
+		false,
 		nil,
 	)
 	if err != nil {
@@ -101,8 +101,6 @@ func (p *Publisher) Publish(ctx context.Context, message domain.Message) error {
 		return fmt.Errorf("encode message: %w", err)
 	}
 
-	// Serialize access to the channel. It also keeps Close from racing with an
-	// in-flight publish during graceful shutdown.
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -112,10 +110,10 @@ func (p *Publisher) Publish(ctx context.Context, message domain.Message) error {
 
 	confirmation, err := p.channel.PublishWithDeferredConfirmWithContext(
 		ctx,
-		"",          // default exchange
-		p.queueName, // routing key
-		false,       // mandatory
-		false,       // immediate
+		"",
+		p.queueName,
+		false,  
+		false,   
 		amqp.Publishing{
 			ContentType:  "application/json",
 			DeliveryMode: amqp.Persistent,
@@ -123,9 +121,6 @@ func (p *Publisher) Publish(ctx context.Context, message domain.Message) error {
 		},
 	)
 	if err != nil {
-		// The delivery outcome is unknown after a connection-level failure, so
-		// do not retry this message and risk a duplicate. The next request will
-		// establish a fresh connection and channel.
 		_ = p.closeResourcesLocked()
 		return fmt.Errorf("publish to queue %q: %w", p.queueName, err)
 	}
