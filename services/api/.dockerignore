@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+
+# Go build artifacts
+*.exe
+*.test
+*.out
+coverage/
+tmp/
+
+# Environment
+.env
+.env.*
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Documentation
+README.md
