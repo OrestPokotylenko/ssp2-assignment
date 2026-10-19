@@ -7,8 +7,8 @@ services:
       RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER:-southpark}"
       RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:-southpark}"
     ports:
-      - "${RABBITMQ_AMQP_PORT:-5672}:5672"
-      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+      - "127.0.0.1:${RABBITMQ_AMQP_PORT:-5672}:5672"
+      - "127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     healthcheck:
