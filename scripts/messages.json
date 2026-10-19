@@ -170,5 +170,61 @@
   {
     "author": "Mr. Garrison",
     "body": "Pop quiz: who pushed directly to main?"
+  },
+  {
+    "author": "Cartman",
+    "body": "Screw you guys! My code works, and that's all that fucking matters!"
+  },
+  {
+    "author": "Cartman",
+    "body": "Respect my authoritah! I have root access, you poor bastards!"
+  },
+  {
+    "author": "Cartman",
+    "body": "Unit tests are for people who don't believe in themselves, Kyle!"
+  },
+  {
+    "author": "Randy",
+    "body": "I didn't break production! I just gave it a surprise stress test!"
+  },
+  {
+    "author": "Randy",
+    "body": "I deleted the database. I thought this was America!"
+  },
+  {
+    "author": "Randy",
+    "body": "The server is down? Oh, I'm sorry! I thought this was a free country!"
+  },
+  {
+    "author": "Stan",
+    "body": "Dude, Cartman just pushed his password to GitHub."
+  },
+  {
+    "author": "Cartman",
+    "body": "It's not a memory leak, you asshole! My application is just getting bigger!"
+  },
+  {
+    "author": "Mr. Garrison",
+    "body": "Alright, children. Today we're learning why your code is a complete piece of shit."
+  },
+  {
+    "author": "Butters",
+    "body": "Aw hamburgers! I accidentally deployed the ransomware."
+  },
+  {
+    "author": "Kenny",
+    "body": "Mmph mmph mmph! (Translation: I'm getting killed by the garbage collector again.)"
+  },
+  {
+    "author": "Stan",
+    "body": "Oh my God, they killed Kenny's process!"
+  },
+  {
+    "author": "Kyle",
+    "body": "You bastards! You forgot to restart the container!"
+  },
+  {
+    "author": "Cartman",
+    "body": "Fuck microservices! I'm putting the entire town in one Docker container!"
   }
 ]
