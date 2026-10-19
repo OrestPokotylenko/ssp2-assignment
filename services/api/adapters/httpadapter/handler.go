@@ -43,6 +43,17 @@ func NewHandler(messages ports.MessageUseCase, logger *slog.Logger) *Handler {
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/messages", h.handleMessages)
+	mux.HandleFunc("/healthz", h.handleHealth)
+}
+
+func (h *Handler) handleHealth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", http.MethodGet)
+		writeJSON(w, http.StatusMethodNotAllowed, errorResponse{Error: "method not allowed"})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
 func (h *Handler) handleMessages(w http.ResponseWriter, r *http.Request) {
