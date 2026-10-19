@@ -209,6 +209,10 @@ The second command permanently removes locally queued messages.
 
 ## Run tests locally
 
+These commands require Go and Python to be installed locally. On Windows, use
+the Python launcher command `py`; the Docker workflow does not require a local
+Python installation.
+
 Go API:
 
 ```console
@@ -222,13 +226,15 @@ Python consumer:
 
 ```console
 cd services/consumer
-python -m pip install -r requirements.txt
-python -m unittest -v
+py -m pip install -r requirements.txt
+py -m unittest -v
 ```
 
 Message generator:
 
 ```console
 cd scripts
-python -m unittest -v
+py -m unittest -v
 ```
+
+On macOS or Linux, replace `py` with `python3`.
