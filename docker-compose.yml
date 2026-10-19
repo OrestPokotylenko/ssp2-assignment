@@ -44,9 +44,27 @@ services:
       RABBITMQ_URL: "amqp://${RABBITMQ_USER:-southpark}:${RABBITMQ_PASSWORD:-southpark}@rabbitmq:5672/"
       RABBITMQ_QUEUE: "${RABBITMQ_QUEUE:-southpark_messages}"
       RABBITMQ_RETRY_SECONDS: "${RABBITMQ_RETRY_SECONDS:-2}"
-      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+      LOG_LEVEL: "${CONSUMER_LOG_LEVEL:-ERROR}"
+      PIKA_LOG_LEVEL: "${PIKA_LOG_LEVEL:-CRITICAL}"
     depends_on:
       rabbitmq:
+        condition: service_healthy
+    init: true
+    stop_grace_period: 15s
+    restart: unless-stopped
+
+  generator:
+    build:
+      context: ./scripts
+      dockerfile: Dockerfile
+    environment:
+      API_URL: "http://api:8080/messages"
+      MESSAGES_FILE: "/app/messages.json"
+      GENERATOR_INTERVAL_SECONDS: "${GENERATOR_INTERVAL_SECONDS:-5}"
+      GENERATOR_HTTP_TIMEOUT_SECONDS: "${GENERATOR_HTTP_TIMEOUT_SECONDS:-5}"
+      LOG_LEVEL: "${GENERATOR_LOG_LEVEL:-INFO}"
+    depends_on:
+      api:
         condition: service_healthy
     init: true
     stop_grace_period: 15s

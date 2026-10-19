@@ -1,14 +1,15 @@
 # South Park Messenger
 
-A small asynchronous messaging system built for the SSP2 assignment. The Go
-HTTP API publishes JSON messages to RabbitMQ, and the Python consumer prints
-each message body to its console.
+A small asynchronous messaging system built for the SSP2 assignment. A timed
+Python generator sends South Park messages to the Go HTTP API, the API
+publishes them to RabbitMQ, and the Python consumer prints each message body to
+its console.
 
 ## Architecture
 
 ```text
-POST /messages -> Go API -> RabbitMQ queue -> Python consumer -> console
-                              southpark_messages
+timed generator -> POST /messages -> Go API -> RabbitMQ -> consumer -> console
+                                               southpark_messages
 ```
 
 The Go service follows a ports-and-adapters structure. RabbitMQ is injected
@@ -24,6 +25,17 @@ No local Go or Python installation is required for the Docker workflow.
 
 ## Run the complete stack
 
+### One-click Windows launcher
+
+With Docker Desktop running, double-click `start-app.cmd` in the repository
+folder. It builds and starts the complete application, then automatically opens
+a dedicated PowerShell window where consumed messages appear as they arrive.
+
+Double-click `stop-app.cmd` to stop the containers. Closing only the message
+window does not stop the application.
+
+### Command line
+
 From the repository root:
 
 ```console
@@ -31,7 +43,8 @@ docker compose up --build
 ```
 
 Compose waits for RabbitMQ to become healthy before starting the API and
-consumer. The API and consumer also handle delayed broker availability.
+consumer. Once the API is healthy, the generator begins sending a randomly
+ordered cycle of messages every five seconds.
 
 The services are then available at:
 
@@ -74,13 +87,29 @@ The API returns `202 Accepted` after RabbitMQ confirms the publication:
 The consumer container prints:
 
 ```text
-Respect my authoritah!
+Cartman: Respect my authoritah!
 ```
 
 Follow only the consumer output with:
 
 ```console
 docker compose logs --follow consumer
+```
+
+Follow generated requests with:
+
+```console
+docker compose logs --follow generator
+```
+
+The generator reads [scripts/messages.json](scripts/messages.json). It includes
+the Cartman message from the assignment description and additional original
+South Park-themed messages. Edit that file and rebuild the generator image to
+change the message pool:
+
+```console
+docker compose build generator
+docker compose up -d generator
 ```
 
 ## Configuration
@@ -97,7 +126,11 @@ customize it, copy `.env.example` to `.env` before starting Compose.
 | `RABBITMQ_PASSWORD` | `southpark` | RabbitMQ password |
 | `RABBITMQ_QUEUE` | `southpark_messages` | Shared queue name |
 | `RABBITMQ_RETRY_SECONDS` | `2` | Consumer reconnect delay |
-| `LOG_LEVEL` | `INFO` | Python consumer log level |
+| `GENERATOR_INTERVAL_SECONDS` | `5` | Delay between automatic messages |
+| `GENERATOR_HTTP_TIMEOUT_SECONDS` | `5` | Generator HTTP request timeout |
+| `CONSUMER_LOG_LEVEL` | `ERROR` | Consumer application log level |
+| `PIKA_LOG_LEVEL` | `CRITICAL` | RabbitMQ client diagnostic level |
+| `GENERATOR_LOG_LEVEL` | `INFO` | Generator log level |
 
 If the credentials contain URL-special characters, URL-encode those
 characters because Compose inserts the values into an AMQP URL.
@@ -132,5 +165,12 @@ Python consumer:
 ```console
 cd services/consumer
 python -m pip install -r requirements.txt
+python -m unittest -v
+```
+
+Message generator:
+
+```console
+cd scripts
 python -m unittest -v
 ```

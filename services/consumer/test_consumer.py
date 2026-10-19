@@ -58,7 +58,7 @@ class ConsumerCallbackTests(unittest.TestCase):
             channel, method, SimpleNamespace(), b'{"author":"Stan","body":"Dude!"}'
         )
 
-        self.assertEqual(output, ["Dude!"])
+        self.assertEqual(output, ["Stan: Dude!"])
         self.assertEqual(channel.acknowledged, [42])
         self.assertEqual(channel.rejected, [])
 

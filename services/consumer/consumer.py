@@ -132,7 +132,7 @@ class RabbitMQConsumer:
             channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
             return
 
-        self._output(message.body)
+        self._output(f"{message.author}: {message.body}")
         channel.basic_ack(delivery_tag=method.delivery_tag)
 
     def _close_connection(self) -> None:
@@ -156,8 +156,11 @@ def positive_float(value: str) -> float:
 
 def main() -> int:
     logging.basicConfig(
-        level=os.getenv("LOG_LEVEL", "INFO").upper(),
+        level=os.getenv("LOG_LEVEL", "ERROR").upper(),
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    )
+    logging.getLogger("pika").setLevel(
+        os.getenv("PIKA_LOG_LEVEL", "CRITICAL").upper()
     )
 
     rabbitmq_url = os.getenv("RABBITMQ_URL", DEFAULT_RABBITMQ_URL).strip()
