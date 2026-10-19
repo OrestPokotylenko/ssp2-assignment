@@ -29,7 +29,7 @@ func (s *messageUseCaseStub) Send(_ context.Context, author, body string) error 
 
 func TestHandlerAcceptsValidMessage(t *testing.T) {
 	useCase := &messageUseCaseStub{}
-	recorder := performRequest(t, useCase, http.MethodPost, `{"author":"Cartman","body":"Respect my authoritah!"}`, "application/json")
+	recorder := performRequest(t, useCase, http.MethodPost, "/messages", `{"author":"Cartman","body":"Respect my authoritah!"}`, "application/json")
 
 	if recorder.Code != http.StatusAccepted {
 		t.Fatalf("status = %d, want %d; body = %s", recorder.Code, http.StatusAccepted, recorder.Body.String())
@@ -39,6 +39,18 @@ func TestHandlerAcceptsValidMessage(t *testing.T) {
 	}
 	if got := recorder.Header().Get("Content-Type"); got != "application/json" {
 		t.Fatalf("Content-Type = %q, want application/json", got)
+	}
+}
+
+func TestHandlerHealth(t *testing.T) {
+	useCase := &messageUseCaseStub{}
+	recorder := performRequest(t, useCase, http.MethodGet, "/healthz", "", "")
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %s", recorder.Code, http.StatusOK, recorder.Body.String())
+	}
+	if useCase.calls != 0 {
+		t.Fatalf("use case calls = %d, want 0", useCase.calls)
 	}
 }
 
@@ -106,7 +118,7 @@ func TestHandlerRejectsInvalidRequests(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			useCase := &messageUseCaseStub{err: tt.useCaseErr}
-			recorder := performRequest(t, useCase, tt.method, tt.body, tt.contentType)
+			recorder := performRequest(t, useCase, tt.method, "/messages", tt.body, tt.contentType)
 			if recorder.Code != tt.wantStatus {
 				t.Fatalf("status = %d, want %d; body = %s", recorder.Code, tt.wantStatus, recorder.Body.String())
 			}
@@ -114,7 +126,7 @@ func TestHandlerRejectsInvalidRequests(t *testing.T) {
 	}
 }
 
-func performRequest(t *testing.T, useCase *messageUseCaseStub, method, body, contentType string) *httptest.ResponseRecorder {
+func performRequest(t *testing.T, useCase *messageUseCaseStub, method, target, body, contentType string) *httptest.ResponseRecorder {
 	t.Helper()
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -122,7 +134,7 @@ func performRequest(t *testing.T, useCase *messageUseCaseStub, method, body, con
 	mux := http.NewServeMux()
 	handler.RegisterRoutes(mux)
 
-	request := httptest.NewRequest(method, "/messages", strings.NewReader(body))
+	request := httptest.NewRequest(method, target, strings.NewReader(body))
 	if contentType != "" {
 		request.Header.Set("Content-Type", contentType)
 	}
