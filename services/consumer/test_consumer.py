@@ -54,7 +54,7 @@ class ConsumerCallbackTests(unittest.TestCase):
         channel = FakeChannel()
         method = SimpleNamespace(delivery_tag=42)
 
-        consumer._on_message(  # noqa: SLF001 - callback behavior is the unit under test
+        consumer._on_message( 
             channel, method, SimpleNamespace(), b'{"author":"Stan","body":"Dude!"}'
         )
 
@@ -68,7 +68,7 @@ class ConsumerCallbackTests(unittest.TestCase):
         channel = FakeChannel()
         method = SimpleNamespace(delivery_tag=7)
 
-        consumer._on_message(  # noqa: SLF001 - callback behavior is the unit under test
+        consumer._on_message(
             channel, method, SimpleNamespace(), b'{"author":"Kyle"}'
         )
 
